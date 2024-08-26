@@ -10,14 +10,14 @@ fi
 apt update && apt upgrade -y
 
 # Install essential packages
-apt install -y ufw fail2ban nvim curl wget git unzip certbot docker.io docker-compose
+apt install -y ufw fail2ban neovim curl wget git unzip certbot docker docker-compose
 
 # Enable and start Docker
 systemctl enable docker
 systemctl start docker
 
 # Configure UFW
-ufw default deny incoming
+ufw deny incoming
 ufw default allow outgoing
 ufw allow 80/tcp
 ufw allow 443/tcp
