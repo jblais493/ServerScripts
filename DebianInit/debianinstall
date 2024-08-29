@@ -10,7 +10,7 @@ fi
 apt update && apt upgrade -y
 
 # Install essential packages
-apt install -y ufw fail2ban neovim curl wget git unzip certbot docker docker-compose
+apt install -y ufw fail2ban neovim curl wget git unzip certbot docker docker-compose weechat tmux
 
 # Enable and start Docker
 systemctl enable docker
