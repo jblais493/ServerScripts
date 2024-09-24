@@ -1,0 +1,86 @@
+#!/bin/bash
+
+# Check if script is run as root
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root" 
+   exit 1
+fi
+
+# Update and upgrade
+apt update && apt upgrade -y
+
+# Install essential packages
+apt install -y ufw fail2ban neovim curl wget git unzip certbot docker.io docker-compose weechat tmux
+
+# Enable and start Docker
+systemctl enable docker
+systemctl start docker
+
+# Configure UFW
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow 80/tcp
+ufw allow 443/tcp
+
+# Prompt for SSH port
+read -p "Enter desired SSH port number (between 1024-65535): " ssh_port
+while ! [[ "$ssh_port" =~ ^[0-9]+$ ]] || [ "$ssh_port" -lt 1024 ] || [ "$ssh_port" -gt 65535 ]; do
+    read -p "Invalid input. Please enter a number between 1024-65535: " ssh_port
+done
+ufw allow $ssh_port/tcp
+ufw --force enable
+
+# Configure SSH
+sed -i 's/^#Port 22/Port '$ssh_port'/' /etc/ssh/sshd_config
+sed -i 's/^PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config
+sed -i 's/^#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+
+# Create a new user with sudo privileges
+read -p "Enter new username: " username
+adduser $username
+usermod -aG sudo $username
+
+# Set up SSH key for the new user
+mkdir -p /home/$username/.ssh
+touch /home/$username/.ssh/authorized_keys
+chown -R $username:$username /home/$username/.ssh
+chmod 700 /home/$username/.ssh
+chmod 600 /home/$username/.ssh/authorized_keys
+echo "Please paste the public SSH key for the new user:"
+read pubkey
+echo "$pubkey" >> /home/$username/.ssh/authorized_keys
+
+# Configure fail2ban
+cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+sed -i 's/bantime  = 10m/bantime  = 1h/' /etc/fail2ban/jail.local
+sed -i 's/findtime  = 10m/findtime  = 30m/' /etc/fail2ban/jail.local
+sed -i 's/maxretry = 5/maxretry = 3/' /etc/fail2ban/jail.local
+
+# Enable and start fail2ban
+systemctl enable fail2ban
+systemctl start fail2ban
+
+# Set up automatic security updates
+apt install -y unattended-upgrades
+echo "Configuring unattended-upgrades..."
+echo 'APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+APT::Periodic::AutocleanInterval "7";
+Unattended-Upgrade::Allowed-Origins {
+    "${distro_id}:${distro_codename}";
+    "${distro_id}:${distro_codename}-security";
+    "${distro_id}ESMApps:${distro_codename}-apps-security";
+    "${distro_id}ESM:${distro_codename}-infra-security";
+};
+Unattended-Upgrade::AutoFixInterruptedDpkg "true";
+Unattended-Upgrade::MinimalSteps "true";
+Unattended-Upgrade::InstallOnShutdown "false";
+Unattended-Upgrade::Remove-Unused-Dependencies "true";
+Unattended-Upgrade::Automatic-Reboot "false";' | sudo tee /etc/apt/apt.conf.d/50unattended-upgrades
+
+# Restart SSH service
+systemctl restart ssh
+
+echo "Setup complete. Please test SSH access with the new user before closing this session."
+echo "New SSH port: $ssh_port"
+echo "New username: $username"
