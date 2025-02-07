@@ -66,14 +66,20 @@ echo "Testing Docker installation..."
 docker --version
 docker compose version
 
+# Firewall configuration
 echo "Configuring firewall..."
-# Set default policies
+# Reset UFW to a clean state
+ufw --force reset
+# Install UFW if it's not already installed
+apt install -y ufw
+# Disable UFW to start fresh
+ufw --force disable
+# Set the default policies
 ufw default deny incoming
 ufw default allow outgoing
-
 # Allow essential web ports
-ufw allow 80/tcp
-ufw allow 443/tcp
+ufw allow 80/tcp comment 'Allow HTTP'
+ufw allow 443/tcp comment 'Allow HTTPS'
 
 # SSH port configuration with validation
 while true; do
