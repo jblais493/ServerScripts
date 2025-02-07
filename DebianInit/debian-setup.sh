@@ -67,10 +67,13 @@ docker --version
 docker compose version
 
 echo "Configuring firewall..."
-ufw deny incoming
-ufw default allow outgoing
-ufw allow 80/tcp
-ufw allow 443/tcp
+# Set default policies first
+ufw default deny incoming    # Deny all incoming traffic by default
+ufw default allow outgoing  # Allow all outgoing traffic by default
+
+# Then add specific allow rules
+ufw allow 80/tcp    # Allow HTTP
+ufw allow 443/tcp   # Allow HTTPS
 
 # SSH port configuration with validation
 while true; do
