@@ -192,9 +192,3 @@ Credentials have been saved to: /opt/mailcow-dockerized/data/conf/installation_i
 The full Mailcow documentation is available at:
 https://mailcow.github.io/mailcow-dockerized-docs/
 EOF
-
-# Offer to show container status
-read -p "Would you like to check the status of Mailcow containers? (y/n) " response
-if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
-    docker compose ps
-fi
