@@ -59,9 +59,15 @@ while [[ -z "$MAILCOW_HOSTNAME" ]]; do
     read -p "Hostname cannot be empty. Please enter your mail server hostname: " MAILCOW_HOSTNAME
 done
 
-# Generate Mailcow configuration
 echo "Generating Mailcow configuration..."
+
+# Generate secure random passwords for services
+DB_ROOT_PASSWORD=$(openssl rand -hex 16)
+DB_USER_PASSWORD=$(openssl rand -hex 16)
+REDIS_PASSWORD=$(openssl rand -hex 16)
+
 cat << EOF > mailcow.conf
+# Basic Mailcow settings
 MAILCOW_HOSTNAME=${MAILCOW_HOSTNAME}
 SKIP_LETS_ENCRYPT=n
 SKIP_CLAMD=n
@@ -70,8 +76,36 @@ SOLR_HEAP=1024
 ENABLE_SSL_SNI=n
 SKIP_IP_CHECK=n
 ADDITIONAL_SAN=
+
+# Time zone configuration
+TZ=UTC
 MAILCOW_TZ=UTC
+
+# Database configuration
+DBNAME=mailcow
+DBUSER=mailcow
+DBPASS=${DB_USER_PASSWORD}
+DBROOT=${DB_ROOT_PASSWORD}
+
+# Redis configuration
+REDISPASS=${REDIS_PASSWORD}
+
+# Additional security settings
+SKIP_INET_CHECK=n
+SKIP_KNOWN_IP_CHECK=n
+SKIP_SOGO=n
+SKIP_SYSLOG=n
 EOF
+
+# Save passwords for later reference
+echo "Saving generated passwords to /root/.mailcow_passwords..."
+cat << EOF > /root/.mailcow_passwords
+Database Root Password: ${DB_ROOT_PASSWORD}
+Database User Password: ${DB_USER_PASSWORD}
+Redis Password: ${REDIS_PASSWORD}
+EOF
+chmod 600 /root/.mailcow_passwords
+
 check_step "Creating configuration file"
 
 # Pull and start Mailcow
