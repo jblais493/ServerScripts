@@ -76,10 +76,10 @@ check_step "Creating configuration file"
 
 # Pull and start Mailcow
 echo "Starting Mailcow services..."
-docker-compose pull
+docker compose pull
 check_step "Pulling Docker images"
 
-docker-compose up -d
+docker compose up -d
 check_step "Starting Mailcow containers"
 
 # Print completion message with important information
@@ -111,5 +111,5 @@ Would you like to check the status of Mailcow containers? (y/n)"
 
 read -r response
 if [[ "$response" =~ ^([yY][eE][sS]|[yY])+$ ]]; then
-    docker-compose ps
+    docker compose ps
 fi
