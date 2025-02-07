@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # Prevent script from executing if only partially downloaded
 set -e
 
@@ -9,13 +8,11 @@ cat << "EOF"
 ║     Debian Server Security Setup Script    ║
 ║            By Your Joshua Blais            ║
 ╚════════════════════════════════════════════╝
-
 This script will configure your Debian server with security best practices:
 - Create a new administrative user with SSH key access
 - Configure SSH with custom port and security settings
 - Set up UFW firewall and fail2ban
 - Install essential packages and enable automatic updates
-
 EOF
 
 read -p "Would you like to continue? (y/N) " confirm
@@ -40,11 +37,34 @@ trap 'handle_error ${LINENO} $?' ERR
 # Installation feedback
 echo "Installing essential packages..."
 apt update && apt upgrade -y
-apt install -y ufw fail2ban neovim curl wget git unzip certbot docker docker-compose tmux
+apt install -y ufw fail2ban neovim curl wget git unzip certbot tmux \
+    apt-transport-https ca-certificates gnupg lsb-release
 
+echo "Setting up Docker repository..."
+# Remove any old Docker installations that might conflict
+apt remove -y docker docker-engine docker.io containerd runc || true
+
+# Add Docker's official GPG key
+curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+# Add the Docker repository
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | \
+    tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Install Docker Engine and Docker Compose
+echo "Installing Docker..."
+apt update
+apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+
+# Start and enable Docker
 echo "Configuring Docker..."
 systemctl enable docker
 systemctl start docker
+
+# Test Docker installation
+echo "Testing Docker installation..."
+docker --version
+docker compose version
 
 echo "Configuring firewall..."
 ufw deny incoming
@@ -82,6 +102,7 @@ done
 echo "Creating new user..."
 adduser $username
 usermod -aG sudo $username
+usermod -aG docker $username  # Add user to docker group
 
 echo "Setting up SSH key..."
 mkdir -p /home/$username/.ssh
@@ -113,14 +134,14 @@ systemctl restart ssh
 
 # Final instructions with clear formatting
 cat << EOF
-
 ✅ Setup Complete! Important Details:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 SSH Port: $ssh_port
 Username: $username
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 ⚠️  IMPORTANT: Test SSH access with your new user before closing this session!
    Command: ssh -p $ssh_port $username@<your-server-ip>
 
+Docker has been installed and configured. The new user ($username) has been added to the docker group.
+You'll need to log out and back in for the docker group membership to take effect.
 EOF
