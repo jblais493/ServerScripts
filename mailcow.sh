@@ -48,9 +48,32 @@ check_step "Configuring firewall"
 # Install Mailcow
 echo "Installing Mailcow..."
 cd /opt || exit 1
+
+# Check if mailcow directory exists and handle it appropriately
+if [ -d "mailcow-dockerized" ]; then
+    echo "A mailcow-dockerized directory already exists in /opt."
+    read -p "Would you like to remove the existing installation and start fresh? (y/N): " remove_existing
+    
+    if [[ $remove_existing =~ ^[Yy]$ ]]; then
+        echo "Removing existing Mailcow installation..."
+        # Stop any running containers
+        if [ -f "/opt/mailcow-dockerized/docker-compose.yml" ]; then
+            cd mailcow-dockerized
+            docker compose down -v
+            cd ..
+        fi
+        # Remove the directory
+        rm -rf mailcow-dockerized
+        echo "Existing installation removed."
+    else
+        echo "Installation cancelled. Please backup and remove the existing installation manually if needed."
+        exit 1
+    fi
+fi
+
+# Clone fresh copy of Mailcow
 git clone https://github.com/mailcow/mailcow-dockerized
 check_step "Cloning Mailcow repository"
-
 cd mailcow-dockerized || exit 1
 
 # Get domain information
