@@ -80,7 +80,6 @@ ufw default allow outgoing
 # Allow essential web ports
 ufw allow 80/tcp comment 'Allow HTTP'
 ufw allow 443/tcp comment 'Allow HTTPS'
-
 # SSH port configuration with validation
 while true; do
     read -p "Enter desired SSH port number (between 1024-65535): " ssh_port
@@ -89,10 +88,13 @@ while true; do
     fi
     echo "Invalid port number. Please try again."
 done
-
 echo "Adding firewall rules..."
 ufw allow $ssh_port/tcp
+
+# Enable UFW and ensure it starts
 ufw --force enable
+systemctl enable ufw
+systemctl start ufw
 
 echo "Configuring SSH..."
 sed -i "s/^#Port 22/Port $ssh_port/" /etc/ssh/sshd_config
