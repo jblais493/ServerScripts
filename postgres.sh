@@ -37,8 +37,8 @@ systemctl stop postgresql
 
 # Configure PostgreSQL
 echo "Configuring PostgreSQL..."
-PG_CONF="/etc/postgresql/16/main/postgresql.conf"
-PG_HBA="/etc/postgresql/16/main/pg_hba.conf"
+PG_CONF="/etc/postgresql/17/main/postgresql.conf"
+PG_HBA="/etc/postgresql/17/main/pg_hba.conf"
 
 # Calculate memory settings based on total RAM
 TOTAL_MEM=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
@@ -64,7 +64,7 @@ listen_addresses = '*'
 # WAL Configuration
 wal_level = replica
 archive_mode = on
-archive_command = 'test ! -f /var/lib/postgresql/16/main/archive/%f && cp %p /var/lib/postgresql/16/main/archive/%f'
+archive_command = 'test ! -f /var/lib/postgresql/17/main/archive/%f && cp %p /var/lib/postgresql/17/main/archive/%f'
 
 # Query Tuning
 random_page_cost = 1.1
@@ -94,8 +94,8 @@ host    all            all             ::1/128                 scram-sha-256
 EOF
 
 # Create archive directory
-mkdir -p /var/lib/postgresql/16/main/archive
-chown postgres:postgres /var/lib/postgresql/16/main/archive
+mkdir -p /var/lib/postgresql/17/main/archive
+chown postgres:postgres /var/lib/postgresql/17/main/archive
 
 # Configure pgBouncer
 echo "Configuring pgBouncer..."
@@ -143,5 +143,5 @@ Next steps:
 4. Set up Prometheus/Grafana monitoring
 
 Logs are in: /var/log/postgresql/
-Configuration: /etc/postgresql/16/main/postgresql.conf
+Configuration: /etc/postgresql/17/main/postgresql.conf
 EOF
