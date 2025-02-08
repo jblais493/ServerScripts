@@ -26,5 +26,7 @@ sudo ./postgres.sh
 ** Setup allowed IP access:
 #+begin_src bash
 sudo vim /etc/postgresql/17/main/pg_hba.conf
+
+# In the file:
 host    all             all             YOUR_IP/32            scram-sha-256
 #+end_src
