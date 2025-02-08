@@ -7,34 +7,30 @@ cat << "EOF"
 ║            By Joshua Blais                 ║
 ╚════════════════════════════════════════════╝
 This script will:
-- Install PostgreSQL 16
+- Install PostgreSQL 17
 - Configure for performance
 - Set up WAL-G for backups
 - Install pgBouncer
 - Configure monitoring
 EOF
 
-read -p "Continue? (y/N) " confirm
-if [[ $confirm != [yY] ]]; then
-   echo "Setup cancelled."
-   exit 1
-fi
+# Remove the read prompt and directly continue
+# Since we want non-interactive
 
 if [[ $EUID -ne 0 ]]; then
-   echo "Error: This script must be run as root"
-   exit 1
+  echo "Error: This script must be run as root"
+  exit 1
 fi
 
 # Add PostgreSQL repository
-echo "Adding PostgreSQL 16 repository..."
+echo "Adding PostgreSQL 17 repository..."
 sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
 
 # Install PostgreSQL and related packages
-echo "Installing PostgreSQL 16..."
+echo "Installing PostgreSQL 17..."
 apt update
-apt install -y postgresql-16 postgresql-client-16 pgbouncer \
-    postgresql-contrib-16 timescaledb-2-postgresql-16
+apt install -y postgresql-17 postgresql-client-17 pgbouncer postgresql-contrib
 
 # Stop PostgreSQL to modify configuration
 systemctl stop postgresql
