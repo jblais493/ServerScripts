@@ -125,6 +125,11 @@ echo "Setting up monitoring..."
 su - postgres -c "psql -c \"CREATE USER monitoring WITH PASSWORD 'monitor123' SUPERUSER;\""
 su - postgres -c "psql -c \"CREATE EXTENSION pg_stat_statements;\""
 
+echo "Opening relevant ports..."
+ufw allow 5432/tcp comment 'PostgreSQL'
+ufw allow 6432/tcp comment 'pgBouncer'
+systemctl restart ufw
+
 # Final instructions
 cat << EOF
 ✅ PostgreSQL Setup Complete!
