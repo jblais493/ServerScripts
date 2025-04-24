@@ -3,10 +3,10 @@
 set -e
 
 # Welcome message and confirmation prompt
-cat << "EOF"
+cat <<"EOF"
 ╔════════════════════════════════════════════╗
 ║     Debian Server Security Setup Script    ║
-║            By Your Joshua Blais            ║
+║              By Joshua Blais               ║
 ╚════════════════════════════════════════════╝
 This script will configure your Debian server with security best practices:
 - Create a new administrative user with SSH key access
@@ -17,14 +17,14 @@ EOF
 
 read -p "Would you like to continue? (y/N) " confirm
 if [[ $confirm != [yY] ]]; then
-   echo "Setup cancelled."
-   exit 1
+    echo "Setup cancelled."
+    exit 1
 fi
 
 # Root check with clear message
 if [[ $EUID -ne 0 ]]; then
-   echo "Error: This script must be run as root. Try: sudo curl ... | sudo bash"
-   exit 1
+    echo "Error: This script must be run as root. Try: sudo curl ... | sudo bash"
+    exit 1
 fi
 
 # Function to handle errors
@@ -48,8 +48,8 @@ apt remove -y docker docker-engine docker.io containerd runc || true
 curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 
 # Add the Docker repository
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | \
-    tee /etc/apt/sources.list.d/docker.list > /dev/null
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" |
+    tee /etc/apt/sources.list.d/docker.list >/dev/null
 
 # Install Docker Engine and Docker Compose
 echo "Installing Docker..."
@@ -113,7 +113,7 @@ done
 echo "Creating new user..."
 adduser $username
 usermod -aG sudo $username
-usermod -aG docker $username  # Add user to docker group
+usermod -aG docker $username # Add user to docker group
 
 echo "Setting up SSH key..."
 mkdir -p /home/$username/.ssh
@@ -123,7 +123,7 @@ chmod 700 /home/$username/.ssh
 chmod 600 /home/$username/.ssh/authorized_keys
 
 echo "Please paste your SSH public key (Ctrl+D when done):"
-cat > /home/$username/.ssh/authorized_keys
+cat >/home/$username/.ssh/authorized_keys
 chown $username:$username /home/$username/.ssh/authorized_keys
 
 echo "Configuring fail2ban..."
@@ -144,7 +144,7 @@ echo "Restarting SSH service..."
 systemctl restart ssh
 
 # Final instructions with clear formatting
-cat << EOF
+cat <<EOF
 ✅ Setup Complete! Important Details:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 SSH Port: $ssh_port
